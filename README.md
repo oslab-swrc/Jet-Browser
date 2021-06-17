@@ -20,6 +20,40 @@ Please refer to our docs at [https://filebrowser.org/features](https://filebrows
 
 For installation instructions please refer to our docs at [https://filebrowser.org/installation](https://filebrowser.org/installation).
 
+### How to use jet-journal
+
+- Download and build e2fsprocs for zjournal.
+
+```
+git clone https://github.com/J-S-Kim/e2fsprog-zj.git
+cd e2fsprog-zj
+./configure
+make
+```
+
+- install the kernel in jet-journal directory of the current repository, and reboot to the kernel you installed.
+- When installing, configure should be set as below.
+- After rebooting, verify that ext4mj and zj modules are installed successfully.
+
+```
+File systems  --->
+    [M] The Extended 4 (ext4mj) filesystem
+```
+
+- Format the storage device and mount it with the command shown below.
+- At this point, the number of journals is the same as the current number of online cores.
+
+```
+sudo ./e2fsprog-zj/misc/mke2fs -t ext4 -J multi_journal -F -G 1 /dev/<block device>
+sudo mount -t ext4mj /dev/<block device> <mount point>
+```
+
+- Finally, the file browser runs as follows
+
+```
+docker run -v <mount point>:/srv filebrowser/filebrowser
+```
+
 ## Configuration
 
 [Authentication Method](https://filebrowser.org/configuration/authentication-method) - You can change the way the user authenticates with the filebrowser server
