@@ -1,6 +1,6 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/filebrowser/logo/master/banner.png" width="550"/>
-</p>
+# Jet Browser
+
+## Jet Journal  +  <img src="https://raw.githubusercontent.com/filebrowser/logo/master/banner.png" width="150"/>
 
 ![Preview](https://user-images.githubusercontent.com/5447088/50716739-ebd26700-107a-11e9-9817-14230c53efd2.gif)
 
@@ -10,7 +10,10 @@
 [![Version](https://img.shields.io/github/release/filebrowser/filebrowser.svg?style=flat-square)](https://github.com/filebrowser/filebrowser/releases/latest)
 [![Chat IRC](https://img.shields.io/badge/freenode-%23filebrowser-blue.svg?style=flat-square)](http://webchat.freenode.net/?channels=%23filebrowser)
 
-filebrowser provides a file managing interface within a specified directory and it can be used to upload, delete, preview, rename and edit your files. It allows the creation of multiple users and each user can have its own directory. It can be used as a standalone app or as a middleware.
+* Jet Browser is a project consisting of two packages: File Browser and Jet-Journal.
+* filebrowser provides a file managing interface within a specified directory and it can be used to upload, delete, preview, rename and edit your files. It allows the creation of multiple users and each user can have its own directory. It can be used as a standalone app or as a middleware.
+* Jet-Journal is a novel scalable per-core journal, and it can easily replace JBD2, the generic journal layer. In this project, the jet-journal directory is a linux kernel v4.14.78 source code with Jet-Journal implemented and is used to change the system to use Jet-Journal.
+* The File Browser follows [Apache-2.0 License](https://github.com/oslab-swrc/Jet-Browser/blob/master/LICENSE)
 
 ## Features
 
