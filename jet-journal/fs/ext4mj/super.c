@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  *  linux/fs/ext4mj/super.c
  *
@@ -5,6 +6,8 @@
  * Remy Card (card@masi.ibp.fr)
  * Laboratoire MASI - Institut Blaise Pascal
  * Universite Pierre et Marie Curie (Paris VI)
+ * Per-core journaling part by Jongseok Kim
+ * SPDX-FileCopyrightText: Copyright (c) 2021 Electronics and Telecommunications Research Institute
  *
  *  from
  *
@@ -374,7 +377,7 @@ static void ext4mj_journal_commit_callback(zjournal_t *journal, ztransaction_t *
 
 	BUG_ON(txn->t_state == T_FINISHED);
 
-	/*ext4mj_process_freed_data(sb, txn->t_tid);*/
+	ext4mj_process_freed_data(sb, journal->j_core_id, txn->t_tid);
 
 	spin_lock(&sbi->s_md_lock);
 	while (!list_empty(&txn->t_private_list)) {
@@ -922,7 +925,7 @@ static void ext4mj_put_super(struct super_block *sb)
 		brelse(sbi->s_group_desc[i]);
 	kvfree(sbi->s_group_desc);
 	kvfree(sbi->_s_journal);
-	kvfree(es->_s_journal_inum);
+	/*kvfree(es->_s_journal_inum);*/
 	kvfree(sbi->s_flex_groups);
 	percpu_counter_destroy(&sbi->s_freeclusters_counter);
 	percpu_counter_destroy(&sbi->s_freeinodes_counter);
@@ -3420,7 +3423,7 @@ int ext4mj_calculate_overhead(struct super_block *sb)
 		if (sbi->_s_journal[i] && !sbi->journal_bdev)
 			overhead += EXT4MJ_NUM_B2C(sbi, sbi->_s_journal[i]->j_maxlen);
 		else if (ext4mj_has_feature_journal(sb) && !sbi->_s_journal[i]) {
-			j_inum = le32_to_cpu(es->_s_journal_inum[i]);
+			j_inum = le32_to_cpu(es->_s_journal_inum[0]) + i;
 			j_inode = ext4mj_get_journal_inode(sb, j_inum);
 			if (j_inode) {
 				j_blocks = j_inode->i_size >> sb->s_blocksize_bits;
@@ -3543,8 +3546,9 @@ static int ext4mj_fill_super(struct super_block *sb, void *data, int silent)
 	es = (struct ext4mj_super_block *) (bh->b_data + offset);
 	sbi->s_es = es;
 	sb->s_magic = le16_to_cpu(es->s_magic);
-	if (sb->s_magic != EXT4_SUPER_MAGIC)
+	if (sb->s_magic != EXT4_SUPER_MAGIC) 
 		goto cantfind_ext4mj;
+	
 	sbi->s_kbytes_written = le64_to_cpu(es->s_kbytes_written);
 
 	/* Warn if metadata_csum and gdt_csum are both set. */
@@ -4133,6 +4137,7 @@ static int ext4mj_fill_super(struct super_block *sb, void *data, int silent)
 		if (ext4mj_multi_mount_protect(sb, le64_to_cpu(es->s_mmp_block)))
 			goto failed_mount3a;
 
+	/*
 	for (i=0; i < EXT4MJ_NUM_JOURNALS; i++)
 		tmp_journal_inum[i] = *(&(es->s_checksum) + i + 1);
 
@@ -4147,6 +4152,7 @@ static int ext4mj_fill_super(struct super_block *sb, void *data, int silent)
 	for (i=0; i < EXT4MJ_NUM_JOURNALS; i++) {
 		es->_s_journal_inum[i] = tmp_journal_inum[i];
 	}
+	*/
 	/*
 	 * The first inode we look at is the journal inode.  Don't try
 	 * root first: it may be modified in the journal!
@@ -4529,7 +4535,7 @@ failed_mount_wq:
 			sbi->_s_journal[i] = NULL;
 		}
 	}
-	kvfree(es->_s_journal_inum);
+	/*kvfree(es->_s_journal_inum);*/
 failed_mount3a:
 	ext4mj_es_unregister_shrinker(sbi);
 failed_mount3:
@@ -4827,15 +4833,13 @@ static int ext4mj_load_journal(struct super_block *sb,
 	if (journal_inum) {
 		/* cassiano:: iterate over journals to get
 		 * the journal stored in the journals array */
-		for (i = 0; i < EXT4MJ_NUM_JOURNALS; i++) {
-			if (!(journal_inum = le32_to_cpu(es->_s_journal_inum[i])))
-				break;
-			if (!(journals[i] = ext4mj_get_journal(sb, journal_inum))) {
+		num_journals = le32_to_cpu(es->_s_journal_inum[1]);
+		for (i = 0; i < num_journals; i++) {
+			if (!(journals[i] = ext4mj_get_journal(sb, journal_inum++))) {
 				err = -EINVAL;
 				goto out;
 			}
-			err |= ext4mj_load_journals_left(sb, es, really_read_only, journals[i], num_journals);
-			num_journals++;
+			err |= ext4mj_load_journals_left(sb, es, really_read_only, journals[i], i);
 		}
 	} else {
 		printk(KERN_ERR "No multi journal\n");

@@ -1,9 +1,13 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * linux/include/linux/zj.h
  *
  * Written by Stephen C. Tweedie <sct@redhat.com>
  *
  * Copyright 1998-2000 Red Hat, Inc --- All Rights Reserved
+ *
+ * Per-core journaling part by Jongseok Kim
+ * SPDX-FileCopyrightText: Copyright (c) 2021 Electronics and Telecommunications Research Institute
  *
  * This file is part of the Linux kernel and is made available under
  * the terms of the GNU General Public License, version 2, or at your
@@ -193,6 +197,7 @@ typedef struct commit_mark_s {
 } commit_mark_t;
 
 typedef struct commit_entry_s {
+    __u32		debug;
     __u16		state;
     __u16		core;
     __u32		tid;
@@ -535,6 +540,9 @@ struct zj_journal_handle
 	unsigned int		h_requested_credits;
 
 	unsigned int		saved_alloc_context;
+
+	struct list_head	h_transaction_list;
+	spinlock_t		    h_mark_lock;
 };
 
 
@@ -618,6 +626,7 @@ struct ztransaction_s
 
 	/* Number of buffers on the t_buffers list [j_list_lock] */
 	int			t_nr_buffers;
+	int			t_nr_shadows;
 
 	/*
 	 * Doubly-linked circular list of all buffers reserved but not yet
@@ -666,6 +675,7 @@ struct ztransaction_s
 	struct list_head	t_check_mark_list;
 	struct list_head	t_complete_mark_list;
     int t_check_num;
+    int t_cp_buffer_num;
     int t_check_num_max;
 
     struct list_head  *t_commit_list;
@@ -731,13 +741,14 @@ struct ztransaction_s
 	 */
 	atomic_t		t_handle_count;
 
+	unsigned int t_real_commit;
+	unsigned int t_real_commit_state;
 	/*
 	 * This transaction is being forced and some process is
 	 * waiting for it to finish.
 	 */
 	unsigned int t_synchronous_commit:1;
-	unsigned int t_real_commit:1;
-	unsigned int t_real_committing:1;
+
 
 	/* Disk flush needs to be sent to fs partition [no locking] */
 	int			t_need_data_flush;

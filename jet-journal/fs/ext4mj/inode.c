@@ -6,6 +6,8 @@
  * Remy Card (card@masi.ibp.fr)
  * Laboratoire MASI - Institut Blaise Pascal
  * Universite Pierre et Marie Curie (Paris VI)
+ * Per-core journaling part by Jongseok Kim
+ * SPDX-FileCopyrightText: Copyright (c) 2021 Electronics and Telecommunications Research Institute
  *
  *  from
  *
@@ -3365,7 +3367,11 @@ static int __ext4mj_journalled_invalidatepage(struct page *page,
 					    unsigned int offset,
 					    unsigned int length)
 {
+	int core = smp_processor_id();
 	zjournal_t *journal = EXT4MJ_JOURNAL(page->mapping->host);
+	zjournal_t **journals = (zjournal_t **)journal->j_private_start;
+
+	journal = journals[core];
 
 	trace_ext4mj_journalled_invalidatepage(page, offset, length);
 

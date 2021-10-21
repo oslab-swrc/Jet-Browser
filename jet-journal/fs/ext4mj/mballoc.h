@@ -3,6 +3,8 @@
  *  fs/ext4mj/mballoc.h
  *
  *  Written by: Alex Tomas <alex@clusterfs.com>
+ * Per-core journaling part by Jongseok Kim
+ * SPDX-FileCopyrightText: Copyright (c) 2021 Electronics and Telecommunications Research Institute
  *
  */
 #ifndef _EXT4MJ_MBALLOC_H
@@ -93,6 +95,8 @@ struct ext4mj_free_data {
 	ext4mj_grpblk_t			efd_count;
 
 	/* transaction which freed this extent */
+    /* for multi journal*/
+	int				    efd_core;
 	tid_t				efd_tid;
 };
 
