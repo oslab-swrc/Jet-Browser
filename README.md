@@ -10,9 +10,8 @@
 [![Version](https://img.shields.io/github/release/filebrowser/filebrowser.svg?style=flat-square)](https://github.com/filebrowser/filebrowser/releases/latest)
 [![Chat IRC](https://img.shields.io/badge/freenode-%23filebrowser-blue.svg?style=flat-square)](http://webchat.freenode.net/?channels=%23filebrowser)
 
-* Jet Browser is a project consisting of two packages: File Browser and Jet-Journal.
-* filebrowser provides a file managing interface within a specified directory and it can be used to upload, delete, preview, rename and edit your files. It allows the creation of multiple users and each user can have its own directory. It can be used as a standalone app or as a middleware.
-* Jet-Journal is a novel scalable per-core journal, and it can easily replace JBD2, the generic journal layer. In this project, the jet-journal directory is a linux kernel v4.14.78 source code with Jet-Journal implemented and is used to change the system to use Jet-Journal.
+* Filebrowser provides a file managing interface within a specified directory and it can be used to upload, delete, preview, rename and edit your files. It allows the creation of multiple users and each user can have its own directory. It can be used as a standalone app or as a middleware.
+* Jet-Journal is a novel scalable per-core journal, and it can easily replace JBD2, the generic journal layer. In order to use Jet-Browser, you need to import a Jet-Journal from another repository and change the kernel to this.
 * The File Browser follows [Apache-2.0 License](https://github.com/oslab-swrc/Jet-Browser/blob/master/LICENSE)
 
 ## Features
@@ -34,7 +33,13 @@ cd e2fsprog-zj
 make
 ```
 
-- install the kernel in jet-journal directory of the current repository, and reboot to the kernel you installed.
+- Clone jet-journal source code from jet-journal repository
+
+```
+git clone https://github.com/oslab-swrc/jet-journal.git
+```
+
+- And then install the kernel in jet-journal directory, and reboot to the kernel you installed.
 - When installing, configure should be set as below.
 - After rebooting, verify that ext4mj and zj modules are installed successfully.
 
